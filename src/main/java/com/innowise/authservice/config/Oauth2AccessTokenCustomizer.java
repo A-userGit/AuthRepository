@@ -1,0 +1,28 @@
+package com.innowise.authservice.config;
+
+import com.innowise.authservice.service.model.CustomUserDetails;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+
+public class Oauth2AccessTokenCustomizer implements OAuth2TokenCustomizer<JwtEncodingContext> {
+
+  @Override
+  public void customize(JwtEncodingContext context) {
+    if (OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+      context.getClaims().claims(claims -> {
+        Object principal = context.getPrincipal().getPrincipal();
+        CustomUserDetails user = (CustomUserDetails) principal;
+
+        Set<String> roles = AuthorityUtils.authorityListToSet(user.getAuthorities()).stream()
+            .map(c -> c.replaceFirst("^ROLE_", "")).collect(
+                Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet));
+        claims.put("roles", roles);
+      });
+    }
+  }
+}

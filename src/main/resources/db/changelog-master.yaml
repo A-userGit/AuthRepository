@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: db/changeset/2025-10-02-create-client-auth-table.yaml
+  - include:
+      file: db/changeset/2025-10-02-create-user-credentials-table.yaml
+  - include:
+      file: db/changeset/2025-11-05-add-client-data.yaml

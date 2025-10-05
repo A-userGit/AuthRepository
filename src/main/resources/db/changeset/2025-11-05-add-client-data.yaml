@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: insert-clients
+      author: Aliaksandr Siamchonak
+      changes:
+        - sqlFile:
+            path: db/sql/insert-clients.sql
+            stripComments: true
+            splitStatements: true
+            endDelimiter: ";"

@@ -1,0 +1,33 @@
+server:
+  port: 8082
+  servlet:
+    session:
+      cookie:
+        name: AUTHSERVERSESSION
+spring:
+  application:
+    name: auth-service
+    port: 8082
+  security:
+    oauth2:
+      authorizationserver:
+        issuer-url: http://auth-service:8082
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://postgres:5432/auth_service
+    username: admin
+    password: admin
+  liquibase:
+    enabled: true
+    drop-first: false
+    change-log: classpath:db/changelog-master.yaml
+    default-schema: public
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show-sql: true
+
+swagger-server: http://localhost:8082/
