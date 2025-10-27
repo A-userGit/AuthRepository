@@ -14,5 +14,4 @@ public class UserCredentialsDto {
   private final String login;
   @NotNull
   private final String password;
-  private final long userId;
 }

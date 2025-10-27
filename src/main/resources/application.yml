@@ -12,6 +12,9 @@ spring:
     oauth2:
       authorizationserver:
         issuer-url: http://auth-service:8082
+        delete-code-ttl: 5
+        access-token-ttl-minutes: 15
+        refresh-token-ttl-hours: 2
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://postgres:5432/auth_service
