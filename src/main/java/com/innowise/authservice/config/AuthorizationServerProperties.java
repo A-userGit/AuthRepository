@@ -13,4 +13,5 @@ public class AuthorizationServerProperties {
 
   private String issuerUrl;
   private String introspectionEndpoint;
+  private int deleteCodeTTL;
 }

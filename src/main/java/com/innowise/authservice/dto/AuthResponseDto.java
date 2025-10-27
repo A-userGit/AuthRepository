@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class AuthResponseDto {
 
-  private final String authenticationToken;
-  private final String refreshToken;
-  private final String bearer;
+  private final long userId;
+  private final String tempAbortCode;
 }

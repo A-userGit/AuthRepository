@@ -15,8 +15,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -51,8 +49,12 @@ public class AuthorizationServerConfig {
       "/v3/api-docs",
       "/webjars/**",
       "/favicon.ico",
+      "/login",
+      "/images/**",
+      "/css/**",
+      "/assets/**",
       "/oauth2/authorization/**",
-      "/api/authorization/**"
+      "/api/v1/authorization/**"
   };
 
   @Bean
@@ -69,6 +71,7 @@ public class AuthorizationServerConfig {
         )
         .authorizeHttpRequests((authorize) ->
             authorize
+                .requestMatchers(AUTH_WHITE_LIST).permitAll()
                 .anyRequest().authenticated()
         ).exceptionHandling((exceptions) -> exceptions
             .defaultAuthenticationEntryPointFor(
@@ -84,13 +87,20 @@ public class AuthorizationServerConfig {
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
       throws Exception {
     http
-        .csrf(AbstractHttpConfigurer::disable)
+        .csrf(crsf->crsf.ignoringRequestMatchers("/api/v1/authorization/**"))
         .cors(Customizer.withDefaults())
         .authorizeHttpRequests((authorize) -> authorize
             .requestMatchers(AUTH_WHITE_LIST).permitAll()
             .anyRequest().authenticated()
         )
-        .formLogin(Customizer.withDefaults());
+        .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer.loginPage(
+            "/login")
+            .permitAll())
+        .exceptionHandling((exceptions) -> exceptions
+            .defaultAuthenticationEntryPointFor(
+                new LoginUrlAuthenticationEntryPoint("/login"),
+                new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
+            ));
 
     return http.build();
   }
@@ -101,8 +111,10 @@ public class AuthorizationServerConfig {
     CorsConfiguration config = new CorsConfiguration();
     config.setAllowedHeaders(List.of("*"));
     config.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "HEAD", "PUT", "DELETE"));
-    config.setAllowedOriginPatterns(List.of("http://localhost:8080*", "http://localhost:8082*", "http://auth-service:8082*",
-        "http://user-service:8080*"));
+    config.setAllowedOriginPatterns(
+        Arrays.asList("http://localhost:8080*", "http://localhost:8082*", "http://auth-service:8082*",
+            "http://user-service:8080*", "http://order-service:8083*", "http://localhost:8083*",
+            "http://gateway-service:8084*"));
     config.setAllowCredentials(true);
     source.registerCorsConfiguration("/**", config);
     return source;
