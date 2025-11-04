@@ -1,0 +1,37 @@
+databaseChangeLog:
+  - changeSet:
+      id: create
+      author: Aliaksandr Siamchonak
+      changes:
+        - createSequence:
+            sequenceName: client_auth_seq
+            startValue: 1
+            incrementBy: 1
+        - createTable:
+            tableName: client_auth
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: client_name
+                  type: varchar(255)
+              - column:
+                  name: client_id
+                  type: varchar(255)
+              - column:
+                  name: client_secret
+                  type: varchar(255)
+              - column:
+                  name: scope
+                  type: varchar(255)
+              - column:
+                  name: redirect_uri
+                  type: varchar(255)
+              - column:
+                  name: post_logout_redirect_uri
+                  type: varchar(255)

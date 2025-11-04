@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: create
+      author: Aliaksandr Siamchonak
+      changes:
+        - createSequence:
+            sequenceName: temp_code_seq
+            startValue: 1
+            incrementBy: 1
+        - createTable:
+            tableName: temp_codes
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(100)
+              - column:
+                  name: issued_at
+                  type: datetime
+              - column:
+                  name: user_id
+                  type: bigint
+        - addForeignKeyConstraint:
+            baseTableName: temp_codes
+            baseColumnNames: user_id
+            constraintName: fk_user_cred
+            referencedTableName: user_credentials
+            referencedColumnNames: id
+            onDelete: CASCADE
