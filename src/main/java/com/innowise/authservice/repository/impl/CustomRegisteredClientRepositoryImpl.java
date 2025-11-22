@@ -1,17 +1,20 @@
 package com.innowise.authservice.repository.impl;
 
+import com.innowise.authservice.config.AuthorizationServerProperties;
 import com.innowise.authservice.entity.ClientAuth;
 import com.innowise.authservice.mapper.ClientAuthMapper;
 import com.innowise.authservice.repository.ClientAuthRepository;
 import com.innowise.authservice.repository.CustomRegisteredClientRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 
 @RequiredArgsConstructor
 public class CustomRegisteredClientRepositoryImpl implements CustomRegisteredClientRepository {
@@ -20,6 +23,7 @@ public class CustomRegisteredClientRepositoryImpl implements CustomRegisteredCli
   private static final String NOT_FOUND = "Client with id %s don't exist";
   private final ClientAuthRepository clientAuthRepository;
   private final ClientAuthMapper mapper;
+  private final AuthorizationServerProperties properties;
 
   @Override
   @Transactional
@@ -55,6 +59,10 @@ public class CustomRegisteredClientRepositoryImpl implements CustomRegisteredCli
         .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
         .redirectUris(s -> s.addAll(Arrays.stream(client.getRedirectUri().split(" ")).toList()))
         .scopes(s -> s.addAll(Arrays.stream(client.getScope().split(" ")).toList()))
+        .tokenSettings(TokenSettings.builder()
+            .accessTokenTimeToLive(Duration.ofMinutes(properties.getAccessTokenTTLMinutes()))
+            .refreshTokenTimeToLive(Duration.ofHours(properties.getRefreshTokenTTLHours()))
+            .build())
         .postLogoutRedirectUri(client.getPostLogoutRedirectUri())
         .build();
   }

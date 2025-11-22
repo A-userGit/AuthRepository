@@ -87,14 +87,14 @@ public class AuthorizationServerConfig {
   public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
       throws Exception {
     http
-        .csrf(crsf->crsf.ignoringRequestMatchers("/api/v1/authorization/**"))
+        .csrf(crsf -> crsf.ignoringRequestMatchers("/api/v1/authorization/**"))
         .cors(Customizer.withDefaults())
         .authorizeHttpRequests((authorize) -> authorize
             .requestMatchers(AUTH_WHITE_LIST).permitAll()
             .anyRequest().authenticated()
         )
         .formLogin(httpSecurityFormLoginConfigurer -> httpSecurityFormLoginConfigurer.loginPage(
-            "/login")
+                "/login")
             .permitAll())
         .exceptionHandling((exceptions) -> exceptions
             .defaultAuthenticationEntryPointFor(
@@ -112,7 +112,8 @@ public class AuthorizationServerConfig {
     config.setAllowedHeaders(List.of("*"));
     config.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "HEAD", "PUT", "DELETE"));
     config.setAllowedOriginPatterns(
-        Arrays.asList("http://localhost:8080*", "http://localhost:8082*", "http://auth-service:8082*",
+        Arrays.asList("http://localhost:8080*", "http://localhost:8082*",
+            "http://auth-service:8082*",
             "http://user-service:8080*", "http://order-service:8083*", "http://localhost:8083*",
             "http://gateway-service:8084*"));
     config.setAllowCredentials(true);
@@ -129,7 +130,8 @@ public class AuthorizationServerConfig {
   @Bean
   public RegisteredClientRepository registeredClientRepository(
       ClientAuthRepository clientAuthRepository, ClientAuthMapper mapper) {
-    return new CustomRegisteredClientRepositoryImpl(clientAuthRepository, mapper);
+    return new CustomRegisteredClientRepositoryImpl(clientAuthRepository, mapper,
+        authorizationServerProperties);
   }
 
   @Bean
