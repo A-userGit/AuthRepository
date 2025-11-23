@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: 80
   servlet:
     session:
       cookie:
@@ -7,11 +7,11 @@ server:
 spring:
   application:
     name: auth-service
-    port: 8082
+    port: 80
   security:
     oauth2:
       authorizationserver:
-        issuer-url: http://auth-service:8082
+        issuer-url: http://auth-service
         delete-code-ttl: 5
         access-token-ttl-minutes: 15
         refresh-token-ttl-hours: 2
