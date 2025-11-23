@@ -115,7 +115,7 @@ public class AuthorizationServerConfig {
         Arrays.asList("http://localhost:8080*", "http://localhost:8082*",
             "http://auth-service:8082*",
             "http://user-service:8080*", "http://order-service:8083*", "http://localhost:8083*",
-            "http://gateway-service:8084*"));
+            "http://gateway-service*"));
     config.setAllowCredentials(true);
     source.registerCorsConfiguration("/**", config);
     return source;
