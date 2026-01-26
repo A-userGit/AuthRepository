@@ -1,0 +1,3 @@
+PORT: 8082
+ISSUER: http://localhost:8082
+DB_HOST: localhost

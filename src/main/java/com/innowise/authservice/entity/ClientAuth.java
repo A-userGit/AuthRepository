@@ -41,4 +41,7 @@ public class ClientAuth {
 
   @Column(name = "post_logout_redirect_uri")
   private String postLogoutRedirectUri;
+
+  @Column(nullable = false, name = "is_public")
+  private boolean isPublic;
 }

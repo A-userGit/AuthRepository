@@ -16,4 +16,5 @@ public class AuthorizationServerProperties {
   private int deleteCodeTTL;
   private int accessTokenTTLMinutes;
   private int refreshTokenTTLHours;
+  private int refreshCodeLength;
 }

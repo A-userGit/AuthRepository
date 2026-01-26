@@ -1,5 +1,8 @@
 package com.innowise.authservice.config;
 
+import com.innowise.authservice.config.pubclient.OAuth2CustomRefreshTokenGenerator;
+import com.innowise.authservice.config.pubclient.PublicClientRefreshTokenAuthenticationConverter;
+import com.innowise.authservice.config.pubclient.PublicClientRefreshTokenAuthenticationProvider;
 import com.innowise.authservice.mapper.ClientAuthMapper;
 import com.innowise.authservice.repository.ClientAuthRepository;
 import com.innowise.authservice.repository.UserCredentialsRepository;
@@ -15,17 +18,22 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository;
 import org.springframework.security.oauth2.server.authorization.config.annotation.web.configurers.OAuth2AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
+import org.springframework.security.oauth2.server.authorization.token.DelegatingOAuth2TokenGenerator;
+import org.springframework.security.oauth2.server.authorization.token.JwtGenerator;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenGenerator;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -58,7 +66,8 @@ public class AuthorizationServerConfig {
   };
 
   @Bean
-  public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
+  @Order(1)
+  public SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http, RegisteredClientRepository registeredClientRepository)
       throws Exception {
     OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
         OAuth2AuthorizationServerConfigurer.authorizationServer();
@@ -67,6 +76,11 @@ public class AuthorizationServerConfig {
         .securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
         .with(authorizationServerConfigurer, (authorizationServer) ->
             authorizationServer
+                    .clientAuthentication(oAuth2ClientAuthenticationConfigurer ->
+                            oAuth2ClientAuthenticationConfigurer
+                                    .authenticationConverter(new PublicClientRefreshTokenAuthenticationConverter())
+                                    .authenticationProvider(new PublicClientRefreshTokenAuthenticationProvider(registeredClientRepository))
+                    )
                 .oidc(Customizer.withDefaults())
         )
         .authorizeHttpRequests((authorize) ->
@@ -113,12 +127,18 @@ public class AuthorizationServerConfig {
     config.setAllowedMethods(Arrays.asList("GET", "POST", "OPTIONS", "HEAD", "PUT", "DELETE"));
     config.setAllowedOriginPatterns(
         Arrays.asList("http://localhost:8080*", "http://localhost:8082*",
-            "http://auth-service:8082*",
-            "http://user-service:8080*", "http://order-service:8083*", "http://localhost:8083*",
+            "http://auth-service:8082*","http://localhost",
+            "http://user-service:8080*", "http://order-service:8083*", "http://localhost:8083*","http://localhost:517*",
+            "http://simple-shop*",
             "http://gateway-service*"));
     config.setAllowCredentials(true);
     source.registerCorsConfiguration("/**", config);
     return source;
+  }
+
+  @Bean
+  PublicClientRefreshTokenAuthenticationConverter publicClientRefreshTokenAuthenticationConverter() {
+    return new PublicClientRefreshTokenAuthenticationConverter();
   }
 
   @Bean
@@ -156,6 +176,15 @@ public class AuthorizationServerConfig {
     return AuthorizationServerSettings.builder()
         .issuer(authorizationServerProperties.getIssuerUrl())
         .build();
+  }
+
+  @Bean
+  public OAuth2TokenGenerator<?> tokenGenerator(JWKSource<SecurityContext> jwkSource,
+                                                Oauth2AccessTokenCustomizer oauth2AccessTokenCustomizer) {
+    JwtEncoder jwtEncoder = new NimbusJwtEncoder(jwkSource);
+    JwtGenerator jwtAccessTokenGenerator = new JwtGenerator(jwtEncoder);
+    jwtAccessTokenGenerator.setJwtCustomizer(oauth2AccessTokenCustomizer);
+    return new DelegatingOAuth2TokenGenerator(jwtAccessTokenGenerator, new OAuth2CustomRefreshTokenGenerator(authorizationServerProperties.getRefreshCodeLength()));
   }
 
 }

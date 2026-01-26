@@ -4,6 +4,8 @@ databaseChangeLog:
   - include:
       file: db/changeset/2025-10-02-create-user-credentials-table.yaml
   - include:
+      file: db/changeset/2026-01-26-add-columns-client-auth.yaml
+  - include:
       file: db/changeset/2025-11-05-add-client-data.yaml
   - include:
       file: db/changeset/2025-10-23-create-temporary-codes-table.yaml

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
+import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 
 @RequiredArgsConstructor
@@ -50,21 +51,42 @@ public class CustomRegisteredClientRepositoryImpl implements CustomRegisteredCli
       return null;
     }
     ClientAuth client = byClientId.get();
-    return RegisteredClient.withId(client.getId().toString())
-        .clientId(client.getClientId())
-        .clientSecret(client.getClientSecret())
-        .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-        .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
-        .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-        .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-        .redirectUris(s -> s.addAll(Arrays.stream(client.getRedirectUri().split(" ")).toList()))
-        .scopes(s -> s.addAll(Arrays.stream(client.getScope().split(" ")).toList()))
-        .tokenSettings(TokenSettings.builder()
-            .accessTokenTimeToLive(Duration.ofMinutes(properties.getAccessTokenTTLMinutes()))
-            .refreshTokenTimeToLive(Duration.ofHours(properties.getRefreshTokenTTLHours()))
-            .build())
-        .postLogoutRedirectUri(client.getPostLogoutRedirectUri())
-        .build();
+    RegisteredClient registeredClient;
+    if(byClientId.get().isPublic()) {
+      registeredClient = RegisteredClient.withId(client.getId().toString())
+              .clientId(client.getClientId())
+              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+              .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+              .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
+              .redirectUris(s -> s.addAll(Arrays.stream(client.getRedirectUri().split(" ")).toList()))
+              .scopes(s -> s.addAll(Arrays.stream(client.getScope().split(" ")).toList()))
+              .tokenSettings(TokenSettings.builder()
+                      .accessTokenTimeToLive(Duration.ofMinutes(properties.getAccessTokenTTLMinutes()))
+                      .refreshTokenTimeToLive(Duration.ofHours(properties.getRefreshTokenTTLHours()))
+                      .build())
+              .clientSettings(ClientSettings.builder()
+                      .requireAuthorizationConsent(true)
+                      .requireProofKey(true).build())
+              .postLogoutRedirectUri(client.getPostLogoutRedirectUri())
+              .build();
+    }else {
+      registeredClient = RegisteredClient.withId(client.getId().toString())
+              .clientId(client.getClientId())
+              .clientSecret(client.getClientSecret())
+              .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+              .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+              .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+              .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
+              .redirectUris(s -> s.addAll(Arrays.stream(client.getRedirectUri().split(" ")).toList()))
+              .scopes(s -> s.addAll(Arrays.stream(client.getScope().split(" ")).toList()))
+              .tokenSettings(TokenSettings.builder()
+                      .accessTokenTimeToLive(Duration.ofMinutes(properties.getAccessTokenTTLMinutes()))
+                      .refreshTokenTimeToLive(Duration.ofHours(properties.getRefreshTokenTTLHours()))
+                      .build())
+              .postLogoutRedirectUri(client.getPostLogoutRedirectUri())
+              .build();
+    }
+    return registeredClient;
   }
 
   @Override
